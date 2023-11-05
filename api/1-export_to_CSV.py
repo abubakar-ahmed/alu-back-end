@@ -1,61 +1,50 @@
 #!/usr/bin/python3
-"""
-    python script that returns TODO list progress for a given employee ID
-"""
+""""Module"""
+
 import csv
 import json
 import requests
 from sys import argv
 
 
-"""
-    Define HTTP headers for the API requests
-"""
-headers = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-}
-
-"""
-    Define the header for the CSV file
-"""
-
 if __name__ == "__main__":
-    """Get the user ID from the command-line argument"""
-    user_id = argv[1]
     """
-        Step 1: Retrieve user information from the JSONPlaceholder API.
+        request user info by employee ID
     """
     request_employee = requests.get(
-        f'https://jsonplaceholder.typicode.com/users/{user_id}')
-    employee = json.loads(request_employee.text)
-    employee_name = employee.get("name")
-    userName = employee.get("username")
+        'https://jsonplaceholder.typicode.com/users/{}/'.format(argv[1]))
+    """
+        convert json to dictionary
+    """
+    user = json.loads(request_employee.text)
+    """
+        extract username
+    """
+    username = user.get("username")
 
     """
-        Step 2: Retrieve the user's tasks from the API.
-        """
+        request user's TODO list
+    """
     request_todos = requests.get(
-        f'https://jsonplaceholder.typicode.com/users/{user_id}/todos')
+        'https://jsonplaceholder.typicode.com/users/{}/todos'.format(argv[1]))
+    """
+        dictionary to store task status(completed) in boolean format
+    """
     tasks = {}
-    employee_todos = json.loads(request_todos.text)
-
     """
-        Step 3: Create a list of tasks.
+        convert json to list of dictionaries
     """
-    for dictionary in employee_todos:
+    user_todos = json.loads(request_todos.text)
+    """
+        loop through dictionary & get completed tasks
+    """
+    for dictionary in user_todos:
         tasks.update({dictionary.get("title"): dictionary.get("completed")})
 
     """
-        Step 4: Generate the CSV filename based on the user's ID.
+        export to CSV
     """
-    USER_ID = user_id
-
-    """
-        Create and write the data to a CSV file.
-    """
-    with open(f'{USER_ID}.csv', 'w', encoding="UTF8", newline='') as user:
-        writer = csv.writer(user, delimiter=',', quoting=csv.QUOTE_ALL)
+    with open('{}.csv'.format(argv[1]), mode='w') as file:
+        file_editor = csv.writer(file, delimiter=',', quoting=csv.QUOTE_ALL)
         for k, v in tasks.items():
-            :x
-
+            file_editor.writerow([argv[1], username, v, k])
